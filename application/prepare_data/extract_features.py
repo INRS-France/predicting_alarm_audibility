@@ -7,6 +7,8 @@ Extracts the mel-spectrograms and creates the datasets in .h5 format for both De
 import os
 import sys
 sys.path.append('..')
+import re
+
 import numpy as np
 import pandas as pd
 import librosa
@@ -73,6 +75,10 @@ def extract_features(conditions_csv_path, data_type, parameters,
     level_corrections = []
     alarm_onsets = []
 
+    # Define a pattern to prevent path transversal vulnerability
+    # the audio file names should follow the following pattern:
+    safe_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+                         
     for idx in conditions.index:
         identifiers.append('id' + str(idx))
         id_alarms.append(conditions['alarm_id'][idx])
@@ -83,11 +89,22 @@ def extract_features(conditions_csv_path, data_type, parameters,
         alarm_onsets.append(conditions['alarm_onset'][idx])
 
         audio_dir = f'./data/audio/{data_type}/'
-        alarm_name, background_name = conditions['alarm_id'][idx]+'.wav', conditions['background_id'][idx]+'.wav'
+        alarm_raw, background_raw = conditions['alarm_id'][idx], conditions['background_id'][idx]
+        if not safe_pattern.match(audio_raw):
+            raise ValueError(f"Invalid alarm_id: {alarm_raw}")
+        if not safe_pattern.match(background_raw):
+            raise ValueError(f"Invalid background_id: {background_raw}")
+        alarm_name = alarm_raw + 'wav'
+        background_name = background_raw + 'wav'
+
+        audio_dir_abs = os.path.abspath(audio_dir)
+        alarm_path = os.path.abspath(os.path.join(audio_dir_abs, 'alarms', alarm_name))
+        background_path = os.path.abspath(os.path.join(audio_dir_abs, 'backgrounds', background_name))
+        
         alarm_onset, noise_level = conditions['alarm_onset'][idx], conditions['noise_level'][idx]
         snr, level_correction = conditions['snr'][idx], conditions['level_correction_dB'][idx]
-        _, alarm = read_audio(os.path.join(audio_dir, 'alarms/') + alarm_name, target_fs=fs)
-        _, background = read_audio(os.path.join(audio_dir, 'backgrounds/') + background_name, target_fs=fs)
+        _, alarm = read_audio(alarm_path, target_fs=fs)
+        _, background = read_audio(background_path, target_fs=fs)
         clip = make_audio_clip(background, alarm, fs, noise_level, snr, level_correction, alarm_onset)
         feature = extractor.transform(clip)
         hf['feature'].resize((idx + 1, seq_len, freq_bins))
@@ -140,3 +157,4 @@ if __name__ == '__main__':
     labels_apf_path = './data/annotations/eval/eval_labels_apf.csv'
     extract_features(conditions_path, data_type='eval', parameters=config,
                      eval_labels_mv_csv_path=labels_mv_path, eval_labels_apf_csv_path=labels_apf_path)
+
