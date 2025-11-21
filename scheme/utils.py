@@ -60,7 +60,7 @@ def make_audio_clip(background, alarm, fs, noise_level, snr, level_correction, a
     background *= get_gain(get_spl(background, fs, ponder), noise_level)
     alarm *= get_gain(get_spl(alarm, fs, ponder), noise_level+snr-level_correction)
 
-    padding_before = np.zeros(np.floor(alarm_onset * fs).astype(int) - 1)
+    padding_before = np.array([]) if np.floor(alarm_onset*fs)<1 else np.zeros(np.floor(alarm_onset * fs).astype(int) - 1)
     padding_after = np.zeros(background.shape[0] - alarm.shape[0] - padding_before.shape[0])
     padded_alarm = np.concatenate((padding_before, alarm, padding_after), axis=0)
 
@@ -102,3 +102,4 @@ def get_mean_stderr(x):
     stderr_x = np.std(x) / np.sqrt(len(x))
 
     return mean_x, stderr_x
+
