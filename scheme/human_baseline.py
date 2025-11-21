@@ -43,9 +43,13 @@ def human_performance(csv_path, data_type, annotator_indices=None, strategy=None
         if metric == 'roc_auc':
             pass
         elif metric in ['f1', 'precision', 'recall']:
-            score = eval(f'metrics.{metric}_score')
-            performance.append(score((responses_others > bin_threshold).astype(int),
-                                     (responses_annotator > bin_threshold).astype(int)))
+            score_fn = getattr(metrics, f"{metric}_score")
+            performance.append(
+                score_fn(
+                    (responses_others > bin_threshold).astype(int),
+                    (responses_annotator > bin_threshold).astype(int)
+                )
+            )
         else:
             raise ValueError("Input variable metric must be 'roc_auc', 'f1', 'precision' or 'recall'.")
 
@@ -53,3 +57,4 @@ def human_performance(csv_path, data_type, annotator_indices=None, strategy=None
     performance *= 100
 
     return performance
+
