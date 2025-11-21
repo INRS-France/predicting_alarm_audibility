@@ -90,7 +90,7 @@ def extract_features(conditions_csv_path, data_type, parameters,
 
         audio_dir = f'./data/audio/{data_type}/'
         alarm_raw, background_raw = conditions['alarm_id'][idx], conditions['background_id'][idx]
-        if not safe_pattern.match(audio_raw):
+        if not safe_pattern.match(alarm_raw):
             raise ValueError(f"Invalid alarm_id: {alarm_raw}")
         if not safe_pattern.match(background_raw):
             raise ValueError(f"Invalid background_id: {background_raw}")
@@ -157,4 +157,5 @@ if __name__ == '__main__':
     labels_apf_path = './data/annotations/eval/eval_labels_apf.csv'
     extract_features(conditions_path, data_type='eval', parameters=config,
                      eval_labels_mv_csv_path=labels_mv_path, eval_labels_apf_csv_path=labels_apf_path)
+
 
