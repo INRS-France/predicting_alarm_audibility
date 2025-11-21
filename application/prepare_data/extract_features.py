@@ -94,8 +94,8 @@ def extract_features(conditions_csv_path, data_type, parameters,
             raise ValueError(f"Invalid alarm_id: {alarm_raw}")
         if not safe_pattern.match(background_raw):
             raise ValueError(f"Invalid background_id: {background_raw}")
-        alarm_name = alarm_raw + 'wav'
-        background_name = background_raw + 'wav'
+        alarm_name = alarm_raw + '.wav'
+        background_name = background_raw + '.wav'
 
         audio_dir_abs = os.path.abspath(audio_dir)
         alarm_path = os.path.abspath(os.path.join(audio_dir_abs, 'alarms', alarm_name))
