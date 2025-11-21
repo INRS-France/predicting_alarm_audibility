@@ -35,7 +35,7 @@ def random_draw(loader, annotator_pool=None, n_annotators=1):
 
 
 def get_annotator_pool(dev_loader, eval_loader, data_type, pool_id):
-
+    
     # Look for common and uncommon annotators
     dev_annotators = dev_loader.dataset.annotators
     eval_annotators = eval_loader.dataset.annotators
@@ -43,11 +43,18 @@ def get_annotator_pool(dev_loader, eval_loader, data_type, pool_id):
     pool_b = eval_annotators[np.isin(eval_annotators, dev_annotators)]
     pool_c = dev_annotators[~np.isin(dev_annotators, eval_annotators)]
 
+    # Create pool_id mapping
+    pool_id_mapping = {
+        'pool_a': pool_a,
+        'pool_b': pool_b,
+        'pool_c': pool_c
+    }
+
     # Return the annotator pool
     if data_type == 'dev' and pool_id in ['pool_b', 'pool_c']:
-        return eval(pool_id)
+        return pool_id_mapping[pool_id]
     elif data_type == 'eval' and pool_id in ['pool_a', 'pool_b']:
-        return eval(pool_id)
+        return pool_id_mapping[pool_id]
     else:
         raise ValueError("Incorrect data_type or pool_id. Variable data_type must either be dev' or 'eval'. "
                          "In case data_type is 'dev', variable pool_id must either be 'pool_b' or 'pool_c. "
@@ -77,3 +84,4 @@ def get_annotator_indices(loader, selected_annotators, data_type):
         raise ValueError("Variable data_type must either be 'dev' or 'eval'.")
 
     return indices
+
